@@ -1,12 +1,7 @@
 {
   "version": 2,
-  "functions": {
-    "predict.js": {
-      "runtime": "nodejs20.x"
-    }
-  },
   "routes": [
-    { "src": "/api/predict", "dest": "/predict.js" },
+    { "src": "/api/predict", "dest": "/api/predict.js" },
     { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
