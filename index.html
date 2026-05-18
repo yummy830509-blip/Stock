@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>台股預言機</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700;900&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --color: #888; --glow: #888; --bg1: #0a0a0a; --bg2: #050505; }
+    body {
+      min-height: 100vh;
+      background: radial-gradient(ellipse at center, var(--bg1) 0%, var(--bg2) 100%);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      font-family: 'Noto Serif TC', Georgia, serif;
+      padding: 24px; overflow: hidden; position: relative;
+      transition: background 1.2s ease;
+    }
+    body::before {
+      content: ''; position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+      background-size: 48px 48px; pointer-events: none;
+    }
+    .orb {
+      position: fixed; width: 600px; height: 600px; border-radius: 50%;
+      background: var(--glow); filter: blur(150px); opacity: .08;
+      animation: pulse 4s ease-in-out infinite; pointer-events: none;
+      transition: background 1.2s ease;
+    }
+    .scanline {
+      position: fixed; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--glow), transparent);
+      opacity: .25; animation: scanline 7s linear infinite; pointer-events: none;
+    }
+    .header { text-align: center; margin-bottom: 40px; opacity: 0; animation: fadeUp .6s ease .2s forwards; position: relative; }
+    .header-sub { font-family: 'Courier Prime', monospace; font-size: 10px; letter-spacing: 8px; color: rgba(255,255,255,.22); margin-bottom: 6px; }
+    .header-date { font-family: 'Courier Prime', monospace; font-size: 12px; letter-spacing: 3px; color: rgba(255,255,255,.15); }
+    .card {
+      width: 100%; max-width: 360px;
+      border: 1px solid rgba(255,255,255,.08); border-radius: 2px;
+      padding: 48px 36px 40px; text-align: center;
+      background: rgba(0,0,0,.55); backdrop-filter: blur(12px);
+      position: relative; opacity: 0; animation: fadeUp .8s ease .3s forwards;
+      transition: border-color 1.2s ease, box-shadow 1.2s ease;
+    }
+    .corner { position: absolute; width: 14px; height: 14px; border-color: var(--glow); border-style: solid; opacity: .5; transition: border-color 1.2s ease; }
+    .corner.tl { top: 10px; left: 10px; border-width: 1px 0 0 1px; }
+    .corner.tr { top: 10px; right: 10px; border-width: 1px 1px 0 0; }
+    .corner.bl { bottom: 10px; left: 10px; border-width: 0 0 1px 1px; }
+    .corner.br { bottom: 10px; right: 10px; border-width: 0 1px 1px 0; }
+    .arrow { font-family: 'Courier Prime', monospace; font-size: 96px; line-height: 1; color: var(--color); text-shadow: 0 0 50px var(--glow); margin-bottom: 12px; animation: flicker 5s ease-in-out infinite; transition: color 1.2s ease, text-shadow 1.2s ease; }
+    .result-text { font-size: 48px; font-weight: 900; color: var(--color); letter-spacing: 16px; text-shadow: 0 0 24px var(--glow); margin-bottom: 4px; transition: color 1.2s ease; }
+    .result-eng { font-family: 'Courier Prime', monospace; font-size: 10px; letter-spacing: 7px; color: var(--color); opacity: .35; margin-bottom: 36px; }
+    .divider { height: 1px; background: linear-gradient(90deg, transparent, var(--glow), transparent); opacity: .4; margin-bottom: 24px; }
+    .confidence { font-family: 'Courier Prime', monospace; font-size: 10px; letter-spacing: 4px; color: rgba(255,255,255,.28); margin-bottom: 14px; }
+    .reason { font-size: 13px; line-height: 1.9; color: rgba(255,255,255,.48); }
+    .spinner { width: 36px; height: 36px; border: 2px solid rgba(255,255,255,.08); border-top-color: rgba(255,255,255,.5); border-radius: 50%; margin: 0 auto 20px; animation: spin 1s linear infinite; }
+    .loading-text { font-family: 'Courier Prime', monospace; font-size: 12px; letter-spacing: 3px; color: rgba(255,255,255,.3); }
+    .error-icon { font-size: 32px; margin-bottom: 12px; }
+    .error-text { color: rgba(255,255,255,.35); font-size: 13px; margin-bottom: 20px; }
+    .retry-btn { background: none; border: 1px solid rgba(255,255,255,.2); color: rgba(255,255,255,.4); padding: 8px 24px; font-family: 'Courier Prime', monospace; font-size: 11px; letter-spacing: 3px; cursor: pointer; border-radius: 1px; transition: all .3s; }
+    .retry-btn:hover { border-color: rgba(255,255,255,.5); color: rgba(255,255,255,.7); }
+    .footer { margin-top: 28px; font-family: 'Courier Prime', monospace; font-size: 10px; letter-spacing: 2px; color: rgba(255,255,255,.12); text-align: center; opacity: 0; animation: fadeUp 1s ease .5s forwards; position: relative; }
+    .state { display: none; }
+    .state.active { display: block; }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes spin { to{transform:rotate(360deg)} }
+    @keyframes pulse { 0%,100%{opacity:.07} 50%{opacity:.13} }
+    @keyframes scanline { 0%{transform:translateY(-100%)} 100%{transform:translateY(100vh)} }
+    @keyframes flicker { 0%,88%,90%,92%,95%,100%{opacity:1} 89%,91%,93%{opacity:.55} }
+  </style>
+</head>
+<body>
+  <div class="orb"></div>
+  <div class="scanline"></div>
+  <div class="header">
+    <div class="header-sub">MARKET ORACLE ◈ TAIWAN</div>
+    <div class="header-date" id="dateLabel"></div>
+  </div>
+  <div class="card" id="card">
+    <div class="corner tl"></div><div class="corner tr"></div>
+    <div class="corner bl"></div><div class="corner br"></div>
+    <div class="state active" id="stateLoading">
+      <div style="padding:20px 0">
+        <div class="spinner"></div>
+        <div class="loading-text" id="loadingText">分析市場資訊...</div>
+      </div>
+    </div>
+    <div class="state" id="stateResult">
+      <div class="arrow" id="arrow">─</div>
+      <div class="result-text" id="resultText">平盤</div>
+      <div class="result-eng" id="resultEng">NEUTRAL</div>
+      <div class="divider"></div>
+      <div class="confidence" id="confidence">信心度 · 中</div>
+      <div class="reason" id="reason"></div>
+    </div>
+    <div class="state" id="stateError">
+      <div class="error-icon">⚠</div>
+      <div class="error-text">無法取得市場資料</div>
+      <button class="retry-btn" onclick="fetchPrediction()">重新分析</button>
+    </div>
+  </div>
+  <div class="footer">⚠ 僅供娛樂參考，不構成投資建議</div>
+
+  <script>
+    const CONFIG = {
+      漲: { arrow:"▲", text:"看漲", eng:"BULLISH", color:"#ff4d4d", bg1:"#1a0000", bg2:"#050000" },
+      跌: { arrow:"▼", text:"看跌", eng:"BEARISH", color:"#00e676", bg1:"#001a00", bg2:"#000500" },
+      平: { arrow:"─", text:"平盤", eng:"NEUTRAL",  color:"#ffd600", bg1:"#1a1600", bg2:"#050500" },
+    };
+    const CACHE_KEY = "stock_oracle_v2";
+    function getTodayKey() {
+      return new Date(new Date().getTime() + 8*60*60*1000).toISOString().slice(0,10);
+    }
+    function getCache() {
+      try { const p = JSON.parse(localStorage.getItem(CACHE_KEY)); if (p?.date === getTodayKey()) return p; } catch {}
+      return null;
+    }
+    function setCache(d) { try { localStorage.setItem(CACHE_KEY, JSON.stringify(d)); } catch {} }
+    function setState(name) {
+      document.querySelectorAll(".state").forEach(el => el.classList.remove("active"));
+      document.getElementById("state"+name).classList.add("active");
+    }
+    function applyTheme(dir) {
+      const c = CONFIG[dir];
+      document.documentElement.style.setProperty("--color", c.color);
+      document.documentElement.style.setProperty("--glow", c.color);
+      document.body.style.background = `radial-gradient(ellipse at center, ${c.bg1} 0%, ${c.bg2} 100%)`;
+      document.querySelector(".orb").style.background = c.color;
+      document.querySelector(".scanline").style.background = `linear-gradient(90deg,transparent,${c.color}50,transparent)`;
+      document.getElementById("card").style.borderColor = c.color+"35";
+      document.getElementById("card").style.boxShadow = `0 0 80px ${c.color}18,inset 0 0 60px ${c.color}06`;
+    }
+    function showResult(data) {
+      const c = CONFIG[data.direction];
+      document.getElementById("arrow").textContent = c.arrow;
+      document.getElementById("resultText").textContent = c.text;
+      document.getElementById("resultEng").textContent = c.eng;
+      document.getElementById("confidence").textContent = `信心度 · ${data.confidence}`;
+      document.getElementById("reason").textContent = data.reason;
+      applyTheme(data.direction);
+      setState("Result");
+    }
+    const tw = new Date(new Date().getTime() + 8*60*60*1000);
+    document.getElementById("dateLabel").textContent = tw.toLocaleDateString("zh-TW",{year:"numeric",month:"long",day:"numeric",weekday:"long"});
+    let dots = 0;
+    setInterval(() => { const el = document.getElementById("loadingText"); if(el) el.textContent = "分析市場資訊"+".".repeat(++dots%4); }, 400);
+    async function fetchPrediction() {
+      const cached = getCache();
+      if (cached) { showResult(cached); return; }
+      setState("Loading");
+      try {
+        const res = await fetch("/api/predict");
+        if (!res.ok) throw new Error("HTTP "+res.status);
+        const data = await res.json();
+        if (data.error) throw new Error(data.error);
+        setCache(data);
+        showResult(data);
+      } catch(e) { console.error(e); setState("Error"); }
+    }
+    fetchPrediction();
+  </script>
+</body>
+</html>
