@@ -1,37 +1,38 @@
 module.exports = async function handler(req, res) {
-  res.setHeader("Access-Control-Allow-Origin", "*");
+ res.setHeader("Access-Control-Allow-Origin", "*");
 
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) return res.status(500).json({ error: "Missing API key" });
+ const apiKey = process.env.ANTHROPIC_API_KEY;
+ if (!apiKey) return res.status(500).json({ error: "Missing API key" });
 
-  const tw = new Date(new Date().getTime() + 8 * 60 * 60 * 1000);
-  const todayKey = tw.toISOString().slice(0, 10);
-  const today = tw.toLocaleDateString("zh-TW", {
-    year: "numeric", month: "long", day: "numeric", weekday: "long"
-  });
+ const tw = new Date(new Date().getTime() + 8 * 60 * 60 * 1000);
+ const todayKey = tw.toISOString().slice(0, 10);
+ const today = tw.toLocaleDateString("zh-TW", {
+   year: "numeric", month: "long", day: "numeric", weekday: "long"
+ });
 
-  try {
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01"
-      },
-      body: JSON.stringify({
-        model: "claude-haiku-4-5",
-        max_tokens: 500,
-        system: "你是台股分析師。只回傳JSON不要其他文字：{\"direction\":\"漲\",\"confidence\":\"高\",\"reason\":\"理由\"} direction只能是漲跌平。",
-        messages: [{ role: "user", content: "今天台股走向？" }]
-      })
-    });
+ try {
+   const response = await fetch("https://api.anthropic.com/v1/messages", {
+     method: "POST",
+     headers: {
+       "Content-Type": "application/json",
+       "x-api-key": apiKey,
+       "anthropic-version": "2023-06-01"
+     },
+     body: JSON.stringify({
+       model: "claude-haiku-4-5",
+       max_tokens: 500,
+       system: "你是台股分析師。只回傳JSON不要其他文字：{\"direction\":\"漲\",\"confidence\":\"高\",\"reason\":\"理由\"} direction只能是漲跌平。",
+       messages: [{ role: "user", content: "今天台股走向？" }]
+     })
+   });
 
-    const data = await response.json();
-    if (!data.content) throw new Error(JSON.stringify(data));
-    const text = data.content.filter(b => b.type === "text").map(b => b.text).join("");
-    const parsed = JSON.parse(text.trim());
-    return res.json({ date: todayKey, ...parsed });
-  } catch(e) {
-    return res.status(500).json({ error: e.message });
-  }
+   const data = await response.json();
+   if (!data.content) throw new Error(JSON.stringify(data));
+   const text = data.content.filter(b => b.type === "text").map(b => b.text).join("");
+   const clean = text.replace(/```json|```/g, "").trim();
+   const parsed = JSON.parse(clean);
+   return res.json({ date: todayKey, ...parsed });
+ } catch(e) {
+   return res.status(500).json({ error: e.message });
+ }
 }
