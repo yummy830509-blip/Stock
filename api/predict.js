@@ -19,10 +19,10 @@ module.exports = async function handler(req, res) {
         "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
+        model: "claude-sonnet-4-5",
         max_tokens: 1000,
         system: `你是台股分析師。今天是 ${today}。根據你的知識判斷今日台股走向。只回傳JSON不要其他文字：{"direction":"漲","confidence":"高","reason":"50字內中文理由"} direction只能是漲跌平三選一。`,
-        messages: [{ role: "user", content: `今天${today}台股走向？` }],
+        messages: [{ role: "user", content and: `今天${today}台股走向？` }],
       }),
     });
 
