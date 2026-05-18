@@ -1,0 +1,8 @@
+{
+  "name": "stock-oracle",
+  "version": "1.0.0",
+  "description": "台股預言機 - 每日台股走向預測",
+  "engines": {
+    "node": ">=18"
+  }
+}
