@@ -21,13 +21,13 @@ module.exports = async function handler(req, res) {
       body: JSON.stringify({
         model: "claude-sonnet-4-20250514",
         max_tokens: 1000,
-        tools: [{ type: "web_search_20250305", name: "web_search" }],
-        system: `你是台股分析師。今天是 ${today}。請搜尋昨晚美股收盤、台指期夜盤、費城半導體指數、台積電ADR，判斷今日台股走向。只回傳JSON不要其他文字：{"direction":"漲","confidence":"高","reason":"50字內中文理由"} direction只能是漲跌平三選一。`,
+        system: `你是台股分析師。今天是 ${today}。根據你的知識判斷今日台股走向。只回傳JSON不要其他文字：{"direction":"漲","confidence":"高","reason":"50字內中文理由"} direction只能是漲跌平三選一。`,
         messages: [{ role: "user", content: `今天${today}台股走向？` }],
       }),
     });
 
     const data = await response.json();
+    if (!data.content) throw new Error(JSON.stringify(data));
     const text = data.content.filter(b => b.type === "text").map(b => b.text).join("");
     const clean = text.replace(/```json|```/g, "").trim();
     const parsed = JSON.parse(clean);
