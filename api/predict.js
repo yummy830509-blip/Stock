@@ -6,6 +6,7 @@ module.exports = async function handler(req, res) {
 
   const tw = new Date(new Date().getTime() + 8 * 60 * 60 * 1000);
   const todayKey = tw.toISOString().slice(0, 10);
+  const dow = tw.getDay();
   const today = tw.toLocaleDateString("zh-TW", {
     year: "numeric", month: "long", day: "numeric", weekday: "long"
   });
@@ -20,10 +21,9 @@ module.exports = async function handler(req, res) {
       },
       body: JSON.stringify({
         model: "claude-haiku-4-5",
-        max_tokens: 1000,
-        tools: [{ type: "web_search_20250305", name: "web_search" }],
-        system: "你是台股分析師。搜尋昨晚美股收盤、台指期夜盤、費半指數、台積電ADR，判斷今日台股走向。只回傳JSON不要其他文字：{\"direction\":\"漲\",\"confidence\":\"高\",\"reason\":\"50字內理由\"} direction只能是漲跌平。",
-        messages: [{ role: "user", content: "今天" + today + "台股走向？請先搜尋最新資訊。" }]
+        max_tokens: 200,
+        system: "你是一個很有個性的台股算命師，說話像江湖術士又懂財經。根據今天星期幾、月份、市場感覺給出今日台股預測。必須自信、有趣、帶點玄學口吻。只回傳JSON不要其他文字：{\"direction\":\"漲\",\"confidence\":\"高\",\"reason\":\"有趣的預測理由，30字內，可以用算命或玄學口吻\"} direction只能是漲跌平。",
+        messages: [{ role: "user", content: "今天" + today + "，星期" + dow + "，台股走向如何？" }]
       })
     });
 
