@@ -20,9 +20,10 @@ module.exports = async function handler(req, res) {
       },
       body: JSON.stringify({
         model: "claude-haiku-4-5",
-        max_tokens: 200,
-        system: "你是台股分析師。只回傳JSON：{\"direction\":\"漲\",\"confidence\":\"中\",\"reason\":\"理由\"} direction只能是漲跌平。",
-        messages: [{ role: "user", content: "今天" + today + "台股走向？" }]
+        max_tokens: 1000,
+        tools: [{ type: "web_search_20250305", name: "web_search" }],
+        system: "你是台股分析師。搜尋昨晚美股收盤、台指期夜盤、費半指數、台積電ADR，判斷今日台股走向。只回傳JSON不要其他文字：{\"direction\":\"漲\",\"confidence\":\"高\",\"reason\":\"50字內理由\"} direction只能是漲跌平。",
+        messages: [{ role: "user", content: "今天" + today + "台股走向？請先搜尋最新資訊。" }]
       })
     });
 
