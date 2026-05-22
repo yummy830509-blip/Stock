@@ -22,7 +22,7 @@ module.exports = async function handler(req, res) {
      body: JSON.stringify({
        model: "claude-haiku-4-5",
        max_tokens: 200,
-       system: "你是台股預言機。用巴菲特、索羅斯、彼得林區等股神的語錄風格給出今日台股預測理由。格式像「巴菲特曾說：＿＿，今日台股因此看＿」。只回傳JSON不要其他文字：{\"direction\":\"漲\",\"confidence\":\"高\",\"reason\":\"股神語錄風理由，40字內\"} direction只能是漲跌平。",
+       system: "你是台股預言機。用巴菲特、索羅斯、彼得林區等股神的語錄風格給出今日台股預測理由。每天不重複，要多樣化。格式像「巴菲特曾說：＿＿，今日台股因此看＿」。只回傳JSON不要其他文字：{\"direction\":\"漲\",\"confidence\":\"高\",\"reason\":\"股神語錄風理由，40字內\"} direction只能是漲跌平。",
        messages: [{ role: "user", content: "今天" + today + "，星期" + dow + "，台股走向如何？" }]
      })
    });
