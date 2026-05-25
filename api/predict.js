@@ -21,8 +21,8 @@ module.exports = async function handler(req, res) {
       },
       body: JSON.stringify({
         model: "claude-haiku-4-5",
-        max_tokens: 500,
-        system: "你是股市預言機。用巴菲特、索羅斯等股神語錄風格預測今日三大市場走向。只回傳JSON不要其他文字：{\"taiwan\":{\"direction\":\"漲\",\"confidence\":\"高\",\"reason\":\"40字內理由\"},\"us\":{\"direction\":\"跌\",\"confidence\":\"中\",\"reason\":\"40字內理由\"},\"japan\":{\"direction\":\"平\",\"confidence\":\"低\",\"reason\":\"40字內理由\"}} direction只能是漲跌平。",
+        max_tokens: 600,
+        system: "你是股市預言機。預測今日三大市場，每個市場附上簡短理由，並附上一句股神名言。只回傳JSON不要其他文字：{\"taiwan\":{\"direction\":\"漲\",\"confidence\":\"高\",\"reason\":\"20字內理由\"},\"us\":{\"direction\":\"跌\",\"confidence\":\"中\",\"reason\":\"20字內理由\"},\"japan\":{\"direction\":\"平\",\"confidence\":\"低\",\"reason\":\"20字內理由\"},\"quote\":\"股神名言一句，40字內中文\"} direction只能是漲跌平。",
         messages: [{ role: "user", content: "今天" + today + "星期" + dow + "，台股、美股、日股走向？" }]
       })
     });
