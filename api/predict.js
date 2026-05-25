@@ -21,9 +21,10 @@ module.exports = async function handler(req, res) {
       },
       body: JSON.stringify({
         model: "claude-haiku-4-5",
-        max_tokens: 600,
-        system: "你是股市預言機。預測今日三大市場，每個市場附上簡短理由，並附上一句股神名言。只回傳JSON不要其他文字：{\"taiwan\":{\"direction\":\"漲\",\"confidence\":\"高\",\"reason\":\"20字內理由\"},\"us\":{\"direction\":\"跌\",\"confidence\":\"中\",\"reason\":\"20字內理由\"},\"japan\":{\"direction\":\"平\",\"confidence\":\"低\",\"reason\":\"20字內理由\"},\"quote\":\"股神名言一句，40字內中文\"} direction只能是漲跌平。",
-        messages: [{ role: "user", content: "今天" + today + "星期" + dow + "，台股、美股、日股走向？" }]
+        max_tokens: 1000,
+        tools: [{ type: "web_search_20250305", name: "web_search" }],
+        system: "你是股市預言機。請搜尋今日最新財經新聞、美股期貨、台指期、日經指數，預測今日三大市場走向，每個附上簡短理由，並附一句股神名言。只回傳JSON不要其他文字：{\"taiwan\":{\"direction\":\"漲\",\"confidence\":\"高\",\"reason\":\"20字內理由\"},\"us\":{\"direction\":\"跌\",\"confidence\":\"中\",\"reason\":\"20字內理由\"},\"japan\":{\"direction\":\"平\",\"confidence\":\"低\",\"reason\":\"20字內理由\"},\"quote\":\"股神名言40字內\"} direction只能是漲跌平。",
+        messages: [{ role: "user", content: "今天" + today + "，請搜尋最新資訊後預測台股、美股、日股走向。" }]
       })
     });
 
