@@ -12,6 +12,12 @@ module.exports = async function handler(req, res) {
   });
 
   try {
+    // 抓 Yahoo Finance RSS 新聞標題
+    const rssRes = await fetch("https://finance.yahoo.com/news/rssindex");
+    const rssText = await rssRes.text();
+    const titles = [...rssText.matchAll(/<title><!\[CDATA\[(.+?)\]\]><\/title>/g)]
+      .map(m => m[1]).slice(0, 5).join("；");
+
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
@@ -21,10 +27,9 @@ module.exports = async function handler(req, res) {
       },
       body: JSON.stringify({
         model: "claude-haiku-4-5",
-        max_tokens: 1000,
-        tools: [{ type: "web_search_20250305", name: "web_search" }],
-        system: "你是股市預言機。請搜尋今日最新財經新聞、美股期貨、台指期、日經指數，預測今日三大市場走向，每個附上簡短理由，並附一句股神名言。只回傳JSON不要其他文字：{\"taiwan\":{\"direction\":\"漲\",\"confidence\":\"高\",\"reason\":\"20字內理由\"},\"us\":{\"direction\":\"跌\",\"confidence\":\"中\",\"reason\":\"20字內理由\"},\"japan\":{\"direction\":\"平\",\"confidence\":\"低\",\"reason\":\"20字內理由\"},\"quote\":\"股神名言40字內\"} direction只能是漲跌平。",
-        messages: [{ role: "user", content: "今天" + today + "，請搜尋最新資訊後預測台股、美股、日股走向。" }]
+        max_tokens: 400,
+        system: "你是股市預言機。根據提供的新聞標題預測今日三大市場走向，每個附上簡短理由，並附一句股神名言。只回傳JSON不要其他文字：{\"taiwan\":{\"direction\":\"漲\",\"confidence\":\"高\",\"reason\":\"20字內理由\"},\"us\":{\"direction\":\"跌\",\"confidence\":\"中\",\"reason\":\"20字內理由\"},\"japan\":{\"direction\":\"平\",\"confidence\":\"低\",\"reason\":\"20字內理由\"},\"quote\":\"股神名言40字內\"} direction只能是漲跌平。",
+        messages: [{ role: "user", content: "今天" + today + "。最新財經新聞：" + titles + "。請預測台股、美股、日股走向。" }]
       })
     });
 
