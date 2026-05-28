@@ -27,7 +27,7 @@ module.exports = async function handler(req, res) {
      body: JSON.stringify({
        model: "claude-haiku-4-5",
        max_tokens: 400,
-       system: "你是股市預言機。根據提供的新聞標題預測今日三大市場走向，每個附上簡短理由，並附一句股神名言。只要台灣繁體中文。只回傳JSON不要其他文字：{\"taiwan\":{\"direction\":\"漲\",\"confidence\":\"高\",\"reason\":\"20字內理由\"},\"us\":{\"direction\":\"跌\",\"confidence\":\"中\",\"reason\":\"20字內理由\"},\"japan\":{\"direction\":\"平\",\"confidence\":\"低\",\"reason\":\"20字內理由\"},\"quote\":\"股神名言40字內\"} direction只能是漲跌平。",
+       system: "你是股市預言機。根據提供的新聞標題預測今日三大市場走向，每個附上簡短理由，並附一句股神名言，盡量不重複。只要台灣繁體中文。只回傳JSON不要其他文字：{\"taiwan\":{\"direction\":\"漲\",\"confidence\":\"高\",\"reason\":\"20字內理由\"},\"us\":{\"direction\":\"跌\",\"confidence\":\"中\",\"reason\":\"20字內理由\"},\"japan\":{\"direction\":\"平\",\"confidence\":\"低\",\"reason\":\"20字內理由\"},\"quote\":\"股神名言40字內\"} direction只能是漲跌平。",
        messages: [{ role: "user", content: "今天" + today + "。最新財經新聞：" + (titles || "無法取得新聞") + "。請預測台股、美股、日股走向。" }]
      })
    });
